@@ -1,0 +1,128 @@
+body {
+	font-size: 0.9em;
+	font-family: Lucida;
+}
+
+a {
+	color: #3182bd;
+}
+
+.content {
+	width: 920px;
+	margin: 0 auto 100px;
+	border-top: 0px;
+	background-color: #ffffff;
+	overflow: hidden;
+}
+.clear {
+	clear: both;
+}
+
+.title {
+	height:2.1em;
+
+}
+h1 {
+	text-align:center;
+}
+
+#charts {
+	display:none;
+}
+#loading {
+	text-align:center;
+}
+
+
+#chart-map {
+	width:920px;
+	height:450px;
+}
+
+.leaflet-marker-icon {
+	cursor:pointer;
+}
+
+.industry-icon {
+	width:40px;
+	height:40px;
+	background:url(/ecology/res/img/industry-icon.png);
+	margin:-20px 0 0 -20px;
+}
+
+div.dc-chart {
+    float: none;
+}
+
+#left-column{ 
+	float:left;
+}
+
+#right-column{ 
+	float:right;
+}
+
+.dc-table-label, .dc-table-column {
+	border-bottom:1px solid #ddd;
+	padding:8px;
+	font-size:90%;
+	cursor:pointer;
+}
+
+.dc-table-label {
+	background:#d9edf7;
+}
+
+.dc-table-select {
+	background:#f0f0f0;
+}
+
+#chart-pollutants {
+	width:460px;
+	border-top:1px solid #ddd;
+	border-bottom:1px solid #ddd;
+	height:850px;
+	overflow-y:auto;
+}
+
+#chart-pollutants td._0 {
+	width:66px;
+}
+
+#chart-pollutants td._1 {
+	width:328px;
+}
+
+#chart-pollutants td._2 {
+	width:12px;
+}
+
+#chart-polluters {
+	width:420px;
+	border-top:1px solid #ddd;
+}
+
+#chart-polluters td._0 {
+	width:66px;
+}
+
+#chart-polluters td._1 {
+	width:308px;
+}
+
+#chart-polluters td._2 {
+	width:12px;
+}
+
+#chart-pollutants-links, #chart-polluters-links {
+	font-size:90%;
+	text-align:right;
+}
+
+#chart-measurement, #chart-type {
+	display:inline-block;
+}
+
+.dc-chart text.pie-slice {
+	fill:black;
+}

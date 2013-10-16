@@ -1,0 +1,130 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<title>Количества и източници на замърсяване в България</title>
+
+	<meta itemprop="name" content="Количества и източници на замърсяване в България"/>
+	<meta itemprop="description" content="Интерактивен инструмент за изследване на отворени данни за промишленото замърсяване в България."/>
+
+	<meta charset="UTF-8">
+
+	<link type="text/css" href="/lib/res/leaflet.064.css" rel="stylesheet"/>
+	<link type="text/css" href="/lib/res/leaflet.markercluster.css" rel="stylesheet"/>
+	<!--[if lte IE 8]><link rel="stylesheet" href="/lib/res/leaflet.ie.064.css" />
+			  <link rel="stylesheet" href="/lib/res/leaflet.markercluster.ie.css" /><![endif]-->
+	<link type="text/css" href="/lib/res/dc.160.css" rel="stylesheet"/>
+	<link rel="stylesheet" type="text/css" href="/ecology/res/style.css?ynocache"/>
+
+
+	<meta http-equiv="author" content="Boyan Yurukov" />
+	<meta http-equiv="contact" content="boyan@yurukov.net" />
+	<meta name="keywords" content="opendata, отворени данни, замърсяване, парникови газове, българия, промишленост" />
+
+	<link rel="image_src" type="image/jpg" href="/ecology/res/img/ecology.png" />
+	<meta itemprop="name" content="Количества и източници на замърсяване в България"/>
+	<meta itemprop="description" content="Интерактивен инструмент за изследване на отворени данни за промишленото замърсяване в България."/>
+	<meta itemprop="image" content="/ecology/res/img/ecology.png"/>
+
+	<meta property="og:url" content="http://opendata.yurukov.net/ecology/" />
+	<meta property="og:type" content="website" />       
+	<meta property="og:title" content="Количества и източници на замърсяване в България" />
+	<meta property="og:description" content="Интерактивен инструмент за изследване на отворени данни за промишленото замърсяване в България." />
+	<meta property="og:image" content="http://opendata.yurukov.net/ecology/res/img/ecology.png" /> 
+</head>
+<body>
+
+<div class="content">
+
+<h1>Количества и източници на замърсяване в България</h1>
+
+<div style="float:left; margin-right:20px; padding-right:15px; border-right:1px dashed gray; ">
+<a style="display:none;" id="lang_link" href="/ecology/en"><img src="/ecology/res/img/flag_02.png" alt=""/> English</a><br/><br/>
+
+<iframe src="//www.facebook.com/plugins/like.php?href=http%3A%2F%2Fopendata.yurukov.net%2Fecology&amp;send=false&amp;layout=box_count&amp;width=80&amp;show_faces=false&amp;font=verdana&amp;colorscheme=light&amp;action=like&amp;height=65&amp;appId=213681481985740" 
+scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:94px; height:65px;" allowTransparency="true"></iframe>
+<br/>
+<a href="https://twitter.com/share" class="twitter-share-button" data-url="http://opendata.yurukov.net/ecology/" data-via="yurukov" data-count="vertical">Tweet</a>
+</div>
+
+
+<div style="float:left;margin:0 20px 20px 0; padding-right:20px; border-right:1px dashed gray; width:35%; text-align:justify;">
+На тази интерактивна графика ще намерите данните от последните 6 години за емисиите на замърсители на въздух, вода и почва,
+както и пренос на отпадъци. Данните са свалени от <a href="http://pdbase.government.bg/forms/public_eprtr.jsp">Регистъра</a> на 
+лицата, притежаващи документи за извършване на дейности с отпадъци. Може да ги свалите 
+<a href="http://opendata.yurukov.net/ecology/data/">тук</a> в отворен формат. Данните за цяла Европа ще намерите 
+<a href="http://prtr.ec.europa.eu/TimeSeriesPollutantReleases.aspx">тук</a>, а тук има 
+<a href="http://ec.europa.eu/environment/air/pollutants/stationary/eper/pdf/bg_prtr.pdf">документация</a> на Български по темата. 
+Отворения код на този сайт и scraping скрипта е в <a href="https://github.com/yurukov/Ecology_Opendata">Github</a>.
+<br/>
+<br/>
+<i>Боян Юруков</i>
+</div>
+<div style="margin:0 0 20px 0; text-align:justify;">
+
+Графиката е почти готова. Ще пусна бързи линкове за филтриране и описание в блога съвсем скоро.
+
+</div>
+
+<p class="clear" style="border-bottom:1px dashed gray; padding-bottom:5px; text-align:right;">
+	<a href="javascript:;" onClick="reset();">Изчисти всички филтри</a>
+<p>
+
+<div id="chart-map"></div>
+
+<div id="left-column">
+
+	
+	<div id="chart-byYear"><h3>Количества по години</h3></div>
+
+	<div id="chart-measurement"><h3>Тип измерване</h3></div>
+	<div id="chart-type"><h3>Тип замърсяване</h3></div>
+
+
+	<h3>10-те най-замърсяващи в избрания регион</h3>
+	<div id="chart-polluters-links">
+		Филтри: <a href="javascript:;" onclick="window.quickfilter3Reset();">Изчисти</a>
+	</div>
+	<div id="chart-polluters"></div>
+
+</div>
+
+<div id="right-column">
+	<h3>Емисии и пренос на замърсители</h3>
+	<div id="chart-pollutants-links">
+		Филтри: 
+		<a href="javascript:;" onclick="window.quickfilter2CO2();">Само CO2</a> |
+		<a href="javascript:;" onclick="window.quickfilter2NoCO2();">Всички без CO2</a> | 
+		<a href="javascript:;" onclick="window.quickfilter2Reset();">Изчисти</a>
+	</div>
+	<div id="chart-pollutants"></div>
+
+</div>
+
+</div>
+
+<script type="text/javascript" src="/lib/res/d3.v3.js"></script>
+<script type="text/javascript" src="/lib/res/crossfilter.js"></script>
+
+<script type="text/javascript" src="/lib/res/dc.160.src.js"></script>
+<script type="text/javascript" src="/lib/res/leaflet.064.js"></script>
+<script type="text/javascript" src="/lib/res/leaflet.markercluster.js"></script>
+<script type="text/javascript" src="/ecology/res/charts.lib.js?ynocache"></script>
+<script type="text/javascript" src="/ecology/res/charts.js?ynocache"></script>
+
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-2905006-14']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+
+	</script>
+</body>
+</html>
+
