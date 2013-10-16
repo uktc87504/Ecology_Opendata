@@ -13,7 +13,7 @@ The page contains several charts that how a map with all polluting sources, list
 
 The charts are based on DC, Crossfilter, D3 and Leaflet. I've extended the dataTable chart of DC and created a new chart wrapper for a Leaflet map. The markers in the map detect the zoom level and show icons on greater zoom. On smaller zoom level it shows a "damage area" for the biggest polluters. That circle is scaled according to the zoom level to always cover the same area.
 
-#####Demo:
+#####DEMO:
 
 [http://opendata.yurukov.net/ecology/en](http://opendata.yurukov.net/ecology/en) (English)
 
