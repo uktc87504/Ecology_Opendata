@@ -1,5 +1,6 @@
 <?php
 
+
 $link = mysqli_connect('localhost', 'username', 'password', "database") or die("0");
 $link->set_charset("utf8");
 
@@ -7,11 +8,12 @@ $link->set_charset("utf8");
 $data=array("type"=>"FeatureCollection", 
 	"features"=>array());
 
-$res = $link->query("SELECT f.id, name, address, city, postcode, geoloc, mainactivity, group_concat(a.code order by a.code separator ',') activity FROM facility f left outer join facility_activity a on f.id=a.facilityid group by f.id order by f.id") or die("\n\nError accessing DB: ". $link->error);
+$res = $link->query("SELECT f.id, name, address, city, postcode, geoloc, mainactivity, legalentity, group_concat(a.code order by a.code separator ',') activity FROM facility f left outer join facility_activity a on f.id=a.facilityid group by f.id order by f.id") or die("\n\nError accessing DB: ". $link->error);
 while ($row = $res->fetch_array(MYSQLI_ASSOC)) {
 	$geoloc=explode(",",$row["geoloc"]);
 	unset($row["geoloc"]);
 	$row["activity"]=explode(",",$row["activity"]);
+	$row["id"]=intval($row["id"]);
 	$data["features"][]=array(
 		"type" => "Feature",
 		"geometry" => array("type" => "Point", "coordinates" => $geoloc),
@@ -24,6 +26,9 @@ for ($i=0;$i<count($data["features"]);$i++) {
 	$data["features"][$i]["properties"]["reports"]=array();
 	$res = $link->query("SELECT pollutantid, year, type, amount, measure_type, measure_method from reports where facilityid=$id") or die("\n\nError accessing DB: ". $link->error);
 	while ($row = $res->fetch_array(MYSQLI_ASSOC)) {
+		$row["pollutantid"]=intval($row["pollutantid"]);
+		$row["year"]=intval($row["year"]);
+		$row["amount"]=intval($row["amount"]);
 		if (!$row["measure_method"])
 			unset($row["measure_method"]);
 		$data["features"][$i]["properties"]["reports"][]=$row;
@@ -34,6 +39,7 @@ for ($i=0;$i<count($data["features"]);$i++) {
 $pollutants = array();
 $res = $link->query("SELECT * from pollutant order by id") or die("\n\nError accessing DB: ". $link->error);
 while ($row = $res->fetch_array(MYSQLI_ASSOC)) {
+	$row["id"]=intval($row["id"]);
 	$pollutants[]=$row;	
 }
 $res->free();

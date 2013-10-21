@@ -223,26 +223,16 @@ dc.leafletChart = function(parent, chartGroup) {
     var _mc; 
     var _blockpopup=false;
     var _redrawblock=false;
-    var _defaultBounds=[42.69,25.15];
+    var _defaultCenter=[42.69,25.42];
     var _defaultZoom=7;
 
     var _oldBounds=false;
 
     _chart.doRender = function() {
-	_map = L.map('chart-map',{zoomAnimation:false}).setView(_defaultBounds, _defaultZoom);
+	_map = L.map('chart-map',{zoomAnimation:false, maxBounds:[[40,19],[46,32]]}).setView(_defaultCenter, _defaultZoom);
 
-	L.tileLayer('http://{s}.tile.cloudmade.com/ef311d0827c74ca7a2e1bb68614b7ad3/998/256/{z}/{x}/{y}.png', {
-		attribution: 'Map data &copy; 2011 OpenStreetMap contributors, Imagery &copy; 2012 CloudMade',
-		minZoom:7,maxZoom:14
-	}).addTo(_map);
+	setSafeTileLayer(_map, {style:998, minZoom:7, maxZoom:14} );
 
-	_map.on("popupclose",function() {
-		if (!_blockpopup) {
-			_chart.filter(null);
-			dc.redrawAll();
-		}
-		_blockpopup=false;
-	});
 	_map.on('zoomstart movestart', _saveBounds, this );
 	_map.on('zoomend moveend', _zoomFilter, this );
 
@@ -253,7 +243,8 @@ dc.leafletChart = function(parent, chartGroup) {
 	if (_redrawblock)
 		return;
 	var markersList=[];
-
+	
+	_map.closePopup();
 	if (_mc) {
 		_mc.eachLayer(function(l) {
 			l.options.icon.setMap(false);
@@ -272,9 +263,6 @@ dc.leafletChart = function(parent, chartGroup) {
 	});
 	_map.addLayer(_mc);
 
-	if (!filterBlock)
-		hashFilters();
-
         return _chart;
     };
 
@@ -287,18 +275,26 @@ dc.leafletChart = function(parent, chartGroup) {
     _zoomFilter = function(e) {
 	if (e.type=="moveend" && e.hard)
 		return;
-	_filter = _map.getBounds();
-	_chart.dimension().filterFunction(function(d) {
-        	return _filter.contains(fD.features[d].marker.getLatLng());
-	});
+
+	if (_map.getCenter().equals(_defaultCenter) && _map.getZoom()==_defaultZoom)
+		_filter=null;
+	else
+		_filter = _map.getBounds();
+	if (!_filter)
+		_chart.dimension().filterAll();
+	else
+		_chart.dimension().filterFunction(function(d) {
+			return _filter.contains(fD.features[d].marker.getLatLng());
+		});
 	if (_chart.dimension().top(1).length==0) {
 		if (_oldBounds)
 			_map.fitBounds(_oldBounds);
 		else
-			_map.setView(_defaultBounds, _defaultZoom);
+			_map.setView(_defaultCenter, _defaultZoom);
 		_oldBounds=false;
 		return;
 	}
+	_chart._invokeFilteredListener(_filter);
 	_redrawblock=true;
 	dc.redrawAll();
 	_redrawblock=false;
@@ -306,27 +302,32 @@ dc.leafletChart = function(parent, chartGroup) {
     }
 
     _chart.filter = function(_) {
-        if (!arguments.length) return _filter; 
+	if (!arguments.length) return _filter; 
 
-        if (_) {
-	    if (!(_ instanceof L.LatLngBounds)) {
-		var l;
-		if (_ instanceof String)
-			l=_.split(",");
-		else if (_ instanceof Array && _.length==2)
-			l=[_[0][0],_[0][1],_[1][0],_[1][1]];
-		else
-			l=_;
-		_=new L.LatLngBounds(new L.LatLng(+l[0],+l[1]),new L.LatLng(+l[2],+l[3]));
-	    }
-	    _map.fitBounds(_);
-        } else {
-            _filter = null;
-            _chart.dimension().filterAll();
-	    _map.closePopup();
-        }
+	if (_) {
+		if (!(_ instanceof L.LatLngBounds)) {
+			var l;
+			if (typeof _ == 'string')
+				l=_.split(",");
+			else if (_ instanceof Array && _.length==2)
+				l=[_[0][0],_[0][1],_[1][0],_[1][1]];
+			else
+				l=_;
+
+			_=new L.LatLngBounds(new L.LatLng(+l[0],+l[1]),new L.LatLng(+l[2],+l[3]));
+		}
+		_map.fitBounds(_);
+	} else {
+		_filter=null;
+		_map.setView(_defaultCenter, _defaultZoom);
+		_map.closePopup();
+	}
 
         return _chart;
+    };
+
+    _chart.filters = function () {
+        return [_filter];
     };
 
     _chart.getMap = function() {
@@ -365,23 +366,23 @@ L.D3GraphIcon = L.Icon.extend({
 		else if (!this.map) {
 			this.map=map;
 			map.on('zoomend', this._changeZoom, this );
+			this._changeZoom();			
 		}
 	},
 
 	createIcon: function () {
-		var div = document.createElement('div');
-		this._div=div;
+		this._div = document.createElement('div');
 		this._div.title = this.title;
 		this._updateGraph();
-		return div;
+		return this._div;
 	},
 	createShadow: function () {
 		return null;
 	},
 
-	_changeZoom: function(e) {
-		if (!this.map) return;
-		this.zoom=e.target.getZoom();
+	_changeZoom: function() {
+		if (!this.map || !this._div) return;
+		this.zoom=this.map.getZoom();
 		this._updateGraph();
 	},
 

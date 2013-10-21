@@ -57,12 +57,30 @@ scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:94px; 
 Отворения код на този сайт и scraping скрипта е в <a href="https://github.com/yurukov/Ecology_Opendata">Github</a>.
 <br/>
 <br/>
+Подробности за графиката и данните ще може да прочетете в <a href="http://yurukov.net/blog/2013/10/16/zamarsqvane-v-bg/">статията в блога ми</a>.
+В коментарите под статията съм дал допълнителна информация, за промени по картата и нови проекти.
+<br/>
+<br/>
 <i>Боян Юруков</i>
 </div>
 <div style="margin:0 0 20px 0; text-align:justify;">
-
-Графиката е почти готова. Ще пусна бързи линкове за филтриране и описание в блога съвсем скоро.
-
+Когато изберете регион на картата, филтрирате по управляваща компания, замърсител и прочие от всяка графика, ще забележите,
+че адресът на страницата се променя. Ако отворите този адрес по-късно, ще видите същото състояние на графиките. Това позволява
+да споделяте графиката фокусирайки се върху точно опрелени аспекти. Ето няколко примера: <br/>
+<ul>
+<li>Площадки около <a href="javascript:;" onClick="filter('41.924,24.100,42.382,25.363&&21_air&&&air');">Пловдив, които изхвърлят серни оксиди</a></li>
+<li>Площадки около <a href="javascript:;" onClick="filter('42.990,27.154,43.440,28.418&&14_air');">Варна, които изхвърлят амоняк</a> във въздуха</li>
+<li>Всички, които <a href="javascript:;" onClick="filter('&&&&M&water');">реално измерват замърсителите на водата</a></li>
+<li>Всички замърсители на въздуха освен <a href="javascript:;" onClick="filter('&&excl,20_air,21_air,2_air,33_air&&&air');">въглеродни и серни оксиди</a></li>
+<li>Прахово замърсяване (PM10) <a href="javascript:;" onClick="filter('42.478,22.705,42.932,23.968&&15_air&&&air');">около Перник и София</a></li>
+<li>Площадки замърсяващи <a href="javascript:;" onClick="filter('&&36_soil&&&soil');">почвата с азбест</a></li>
+<li>Замърсяването от <a href="javascript:;" onClick="filter('&&&248,28,179,73,75');">най-големите ТЕЦ-ове</a></li>
+<li>Площадки замърсяващи водата с <a href="javascript:;" onClick="filter('&&5_water&&&water');">арсен</a>, 
+<a href="javascript:;" onClick="filter('&&29_water&&&water');">цианид</a>, <a href="javascript:;" onClick="filter('&&26_water&&&water');">живак</a> и 
+<a href="javascript:;" onClick="filter('&&11_water&&&water');">олово</a></li>
+<li>Емисиите на <a href="javascript:;" onClick="filter('42.082,26.128,42.993,28.655&&&140');">Лукойл Нефтохим Бургас</a></li>
+<li>Компании пренасящи <a href="javascript:;" onClick="filter('&&8_waste-transfer,30_waste-transfer&&&waste-transfer');">опасни отпадъци в и извън страната</a></li>
+</ul>
 </div>
 
 <p class="clear" style="border-bottom:1px dashed gray; padding-bottom:5px; text-align:right;">
@@ -70,6 +88,15 @@ scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:94px; 
 <p>
 
 <div id="chart-map"></div>
+
+<div id="chart-map-links">
+	Филтри: <a href="javascript:;" onclick="window.quickfilter0Reset();">Покажи цялата страна</a> | 
+<a href="javascript:;" onclick="window.quickfilter0City('42.459,22.720,42.913,23.983');">София</a> | 
+<a href="javascript:;" onclick="window.quickfilter0City('42.024,24.440,42.253,25.071');">Пловдив</a> | 
+<a href="javascript:;" onclick="window.quickfilter0City('42.307,26.833,42.762,28.096');">Бургас</a> | 
+<a href="javascript:;" onclick="window.quickfilter0City('43.092,27.479,43.317,28.111');">Варна</a>
+
+</div>
 
 <div id="left-column">
 
@@ -80,7 +107,7 @@ scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:94px; 
 	<div id="chart-type"><h3>Тип замърсяване</h3></div>
 
 
-	<h3>10-те най-замърсяващи в избрания регион</h3>
+	<h3>Компании с площадки в избрания регион</h3>
 	<div id="chart-polluters-links">
 		Филтри: <a href="javascript:;" onclick="window.quickfilter3Reset();">Изчисти</a>
 	</div>
@@ -108,6 +135,9 @@ scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:94px; 
 <script type="text/javascript" src="/lib/res/dc.160.src.js"></script>
 <script type="text/javascript" src="/lib/res/leaflet.064.js"></script>
 <script type="text/javascript" src="/lib/res/leaflet.markercluster.js"></script>
+
+<script type="text/javascript" src="/lib/tileusage/mark.js"></script>
+
 <script type="text/javascript" src="/ecology/res/charts.lib.js?ynocache"></script>
 <script type="text/javascript" src="/ecology/res/charts.js?ynocache"></script>
 

@@ -4,6 +4,7 @@ var dateFormat = d3.time.format("%d%m%y");
 var dateFormatP = d3.time.format("%d.%m.%Y");
 var axisFormat = d3.format("d");
 var axisFormatF = d3.format(".1f");
+var geoFormatF = d3.format(".3f");
 var axisFormatPerc = d3.format("%");
 var axisFormatPercF = d3.format(".2%");
 var amountFormat = function (d) {
@@ -26,7 +27,9 @@ pNames=null;
 fD=null;
 cD=null;
 leafletC=null; 
-filterBlock=true;
+hashBlock=false;
+
+if (console) console.log("Loading...");
 
 d3.json("data/reports.json", function (D) {
 	fD=D;
@@ -44,7 +47,7 @@ function init() {
 	if (!fD || !pNames)
 		return;
 		
-	if (console) console.log("Loaded");
+	if (console) console.log("Parsing...");
 	
 	cD=new Array();
 	fD.features.forEach(function(d,i) {
@@ -55,7 +58,7 @@ function init() {
 				return;
 			cD[cD.length]=r;
 			r.facillityI=d.i;
-			if (r.type="air")
+			if (r.type=="air")
 				d.pollutionAir+=r.amount;
 		});
 	});
@@ -68,19 +71,18 @@ function init() {
 			clickable: true,
 	 		draggable: false
 		});
-		d.marker.bindPopup(d.properties.name+", "+d.properties.city+"<br/>"+
-			"<i>"+d.properties.mainactivity+"</i><br/>"+
+		d.marker.bindPopup("<i>Компания:</i> "+d.properties.legalentity+"<br/>"+
+			"<i>Площадка:</i> "+d.properties.name+", "+d.properties.city+"<br/>"+
+			"<i>Дейност:</i> "+d.properties.mainactivity+"<br/>"+
 			"<a href='http://pdbase.government.bg/forms/public_eprtr.jsp?a=2&id="+d.properties.id+"&year=2012' target='_blank'>Подробни данни</a>");
 		d.marker.data=d;
 	});
 
-	if (console) console.log(fD);
-
-	if (console) console.log("Parsed");
+	if (console) console.log("Building...");
 
 	var xf = crossfilter(cD);
 
-// Chart 1
+// Chart 0
 
 	var facilities = xf.dimension(function(d) { return d.facillityI; });
 	var facilitiesGroup = facilities.group().reduce(
@@ -110,7 +112,7 @@ function init() {
 		.dimension(facilities) 
 		.group(facilitiesGroup);
 
-// Chart 2
+// Chart 1
 
 	var byYears = xf.dimension(function(d) { return d.year; });
     	var byYearsGroup = byYears.group().reduceSum(function(d) { return Math.round(d.amount); });
@@ -130,7 +132,7 @@ function init() {
 		.renderTitle(true)
 		.brushOn(false);
 
-// Chart 3
+// Chart 2
 
 	var byPollutant = xf.dimension(function(d) { return d.pollutantid+"_"+d.type; });
     	var byPollutantGroup = byPollutant.group().reduce(
@@ -195,15 +197,15 @@ function init() {
 			var average=(d.value.amount-amount12)/countY;
 			var change=amount12/average-1;
 			if (change==-1) return "Пълно спиране на емисиите";
-			return (change>0?"Покачване":"Понижение")+" от "+axisFormatPercF(change)+" през 2012 спрямо предходните 5 години.";
+			return (change>0?"Покачване":"Понижение")+" през 2012 с "+axisFormatPercF(Math.abs(change))+" спрямо предходните 5 години.";
 		}
             ])
             .sortBy(function(d){ return d.value.amount; })
             .order(d3.ascending);
 
-// Chart 4
+// Chart 3
 
-	var byPolluter = xf.dimension(function(d) { return d.facillityI; });
+	var byPolluter = xf.dimension(function(d) { return fD.features[d.facillityI].properties.legalentity; });
     	var byPolluterGroup = byPolluter.group().reduce(
 		function (p, v) {
 			p.amount+=v.amount;
@@ -224,7 +226,7 @@ function init() {
             .size(10)
             .columns([
                 function(d) { return amountFormat(d.value.amount); },
-                function(d) { return fD.features[d.key].properties.name; },
+                function(d) { return d.key; },
                 function(d) {
 			var countY=0;
 			for (i=0;i<5;i++) 
@@ -256,7 +258,7 @@ function init() {
             .sortBy(function(d){ return d.value.amount; })
             .order(d3.ascending);
 
-// Chart 5
+// Chart 4
 
 	var byMeasurement = xf.dimension(function(d) { return d.measure_type; });
     	var byMeasurementGroup = byMeasurement.group().reduceSum(function (d) { return Math.round(d.amount)});
@@ -270,22 +272,30 @@ function init() {
 	    .title(function(d) { return mNames[d.data.key]+" количество замърсители: "+amountFormat(d.data.value); })
 	    .renderTitle(true);
 
-// Chart 6
+// Chart 5
 
 	var byType = xf.dimension(function(d) { return d.type; });
     	var byTypeGroup = byType.group().reduce(
 		function (p, v) {
-			if (p.facillities.indexOf(v.facillityI)==-1)
-				p.facillities.push(v.facillityI);
+			if (!p.facillities[v.facillityI]) {
+				p.facillities[v.facillityI]=0;
+				p.count++;
+			}
+			p.facillities[v.facillityI]+=v.amount;
 			return p;
 		},
 		function (p, v) {
-			if (p.facillities.indexOf(v.facillityI)!=-1)
-				p.facillities.splice(p.facillities.indexOf(v.facillityI), 1);
+			if (p.facillities[v.facillityI]) {
+				p.facillities[v.facillityI]-=v.amount;
+				if (p.facillities[v.facillityI]<=0) {
+					p.facillities[v.facillityI]=0;
+					p.count--;
+				}
+			}
 			return p;
 		},
 		function () {
-		  return {facillities:[]};
+		  return {count:0, facillities:[]};
 		});
 
         dc.pieChart("#chart-type")
@@ -293,19 +303,34 @@ function init() {
             .group(byTypeGroup)
             .width(200)
 	    .height(200)
-	    .valueAccessor(function(d) { return d.value.facillities.length; })
+	    .valueAccessor(function(d) { return d.value.count; })
 	    .label(function(d) { return tNamesShort[d.data.key]; })
 	    .renderLabel(true)
-	    .title(function(d) { return tNames[d.data.key]+": "+d.data.value.facillities.length+" замърсяващи предприятия"; })
+	    .title(function(d) { return tNames[d.data.key]+": "+d.data.value.count+" замърсяващи предприятия"; })
 	    .renderTitle(true);
+
 
 	if (console) console.log("Rendering...");
 	dc.renderAll();
 
 	if (console) console.log("Filtering...");
-//	filterBlock=false;
-//	filter(decodeFiltersURL(decodeURIComponent(window.location.hash)), true);
+	filter(window.location.hash);
+
+	if (console) console.log("Start filter hashing...");
+	dc.chartRegistry.list().forEach(function(d, i) { d.on("filtered", hashFilters); });
+
+	if (console) console.log("Done. Go play.");
 };
+
+window.quickfilter0Reset = function() {
+	dc.chartRegistry.list()[0].filterAll(); 
+	dc.redrawAll();
+}
+
+window.quickfilter0City = function(coords) {
+	dc.chartRegistry.list()[0].filter(coords); 
+	dc.redrawAll();
+}
 
 window.quickfilter2Reset = function() {
 	dc.chartRegistry.list()[2].filterAll(); 
@@ -332,7 +357,8 @@ window.reset = function() {
 	filter();
 };
 
-var hashFilters = function() {
+var hashFilters = function(chart, filter) {
+	if (hashBlock) return;
 	window.location.hash=encodeFiltersURL(getFilters());
 	var langL = document.getElementById("lang_link").href;
 	if (langL.indexOf("#")!=-1)
@@ -342,79 +368,101 @@ var hashFilters = function() {
 
 var getFilters = function() {
 	var filters=[];
-	dc.chartRegistry.list().forEach(function(d, i) { filters[i]=d.filter(); });
+	dc.chartRegistry.list().forEach(function(d, i) { 
+		filters[i]=d.filters().slice(0); 
+		if (d.batchFilter) {
+			var allEntries = d.dimension().group().top(Infinity);
+			if (allEntries.length/2-2<filters[i].length) {
+				filters[i]=["excl"];
+				allEntries.forEach(function(e) {
+					if (d.filters().indexOf(e.key)==-1)
+						filters[i].push(e.key);
+				});
+			}
+		}
+		if (i==3)
+			for (k=0;k<filters[i].length;k++)
+			if ("excl"!=filters[i][k])
+			for (j=0;j<fD.features.length;j++)
+			if (fD.features[j].properties.legalentity==filters[i][k]) {
+				filters[i][k]=fD.features[j].properties.id;
+				break;
+			}
+	});
 	return filters;
 };
 
 window.encodeFiltersURL = function(filters) {
 	filters.forEach(function(f, i) {
-		if (f==null || f==false)
+		if (!f || f.length==0)
 			filters[i]='';
-		else if (f instanceof Array || f instanceof Object) {
-			if (f[0] instanceof Date && f[1] instanceof Date)
-				filters[i]="d"+Math.round(f[0].getTime()/86400000)+"_"+Math.round(f[1].getTime()/86400000);
-			else if (!isNaN(parseFloat(f[0])) && !isNaN(parseFloat(f[1])))
-				filters[i]=Math.round(parseFloat(f[0])*100)/100+"_"+Math.round(parseFloat(f[1])*100)/100;
-		} else if (!isNaN(parseFloat(f)))
-			filters[i]=Math.round(parseFloat(f)*100)/100;
-		else
-			filters[i]=(""+f).replace(/\_/g,"\\_");
+		else if (f[0] instanceof L.LatLngBounds)
+			filters[i]=geoFormatF(f[0].getSouth())+","+geoFormatF(f[0].getWest())+","+geoFormatF(f[0].getNorth())+","+geoFormatF(f[0].getEast());
+		else  
+			filters[i]=f.join(",");
 	});
-	var f = filters.join("|");
-	if (f.replace(/\|/g,"")=="")
-		f="|";
+	var f = filters.join("&").replace(/&+$/,"");
+	if (f=="") f="&";
 	return f;
 };
 
 window.decodeFiltersURL = function(hash) {
-	if (hash==null || hash=="" || hash=="#")
+	if (hash==null || hash=="" || hash=="#" || hash=="#&")
 		return null;
 	if (hash[0]=="#")
 		hash=hash.substr(1);
-	hash=hash.split("|");
+	hash=hash.split("&");
 	var filters = [];
 	hash.forEach(function(h, i) {
 		if (h=="")
 			filters[i]=null;
-		else if (h.indexOf("_")!=-1 && h.indexOf("\\_")==-1) {
-			h=h.split("_");
-			if (h[0][0]=="d") {
-				filters[i]=[new Date((parseInt(h[0].substr(1)))*86400000), new Date((parseInt(h[1]))*86400000) ];
-				filters[i][0].setHours(0); filters[i][1].setHours(0);
-			}
-			else if (!isNaN(parseFloat(h[0])))
-				filters[i]=[parseFloat(h[0]), parseFloat(h[1])];
-		} else if (!isNaN(parseFloat(h)))
-			filters[i]=parseFloat(h);
+		else if (i==0)
+			filters[i]=[h.split(",")];
 		else 
-			filters[i]=(""+h).replace(/\\\_/g,"_");
+			filters[i]=h.split(",");
 	});
 	return filters;
 };
 
-window.filter = function(filters,nohash) {
-	var relocatemap=true;
+window.filter = function(filters) {
+	if (filters!=null && typeof filters =='string')
+		filters = decodeFiltersURL(decodeURIComponent(filters));
+	hashBlock=true;
 	if (filters==null)
 		dc.filterAll();
-	else
+	else {
+		dc.filterAll();
 		dc.chartRegistry.list().forEach(function(d, i) { 
-			if (i<filters.length) 
-				d.filter(filters[i]); 
-			else
+			if (i<filters.length) {
+				if (filters[i] instanceof Array) {
+					if (i==3)
+						for (k=0;k<filters[i].length;k++)
+						for (j=0;j<fD.features.length;j++)
+						if (fD.features[j].properties.id==filters[i][k]) {
+							filters[i][k]=fD.features[j].properties.legalentity;
+							break;
+						}
+
+					if (d.batchFilter) {
+						if (filters[i][0]=="excl")
+							d.exclusiveFilter(filters[i].slice(1));
+						else
+							d.batchFilter(filters[i])
+					} else {
+						var lastFilter=filters[i].pop();
+						var allFilters = d.filters();
+						allFilters.splice(d.filters()).push.apply(allFilters,filters[i]);
+						d.filter(lastFilter); 
+					}
+				} else
+					d.filter(filters[i]); 
+			} else
 				d.filter(null); 
-			if (i==4 && filters[i]!=null && filters[i]!=false && cD[filters[i]]) {
-				leafletC.getMap().setView(cD[filters[i]].marker.getLatLng(),10); 
-				cD[filters[i]].marker.popup.openOn(leafletC.getMap());
-				relocatemap=false;
-			}
 		});
-	if (!nohash)
-		hashFilters();
-	dc.redrawAll();
-	if (relocatemap) {
-		leafletC.getMap().closePopup();
-		leafletC.getMap().setView([42.69,25.15], 7);
 	}
+	hashBlock=false;
+	hashFilters();
+	dc.redrawAll();
 };
 
 })();

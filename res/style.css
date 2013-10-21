@@ -65,7 +65,6 @@ div.dc-chart {
 .dc-table-label, .dc-table-column {
 	border-bottom:1px solid #ddd;
 	padding:8px;
-	font-size:90%;
 	cursor:pointer;
 }
 
@@ -86,11 +85,11 @@ div.dc-chart {
 }
 
 #chart-pollutants td._0 {
-	width:66px;
+	width:74px;
 }
 
 #chart-pollutants td._1 {
-	width:328px;
+	width:320px;
 }
 
 #chart-pollutants td._2 {
@@ -103,19 +102,18 @@ div.dc-chart {
 }
 
 #chart-polluters td._0 {
-	width:66px;
+	width:74px;
 }
 
 #chart-polluters td._1 {
-	width:308px;
+	width:300px;
 }
 
 #chart-polluters td._2 {
 	width:12px;
 }
 
-#chart-pollutants-links, #chart-polluters-links {
-	font-size:90%;
+#chart-pollutants-links, #chart-polluters-links, #chart-map-links {
 	text-align:right;
 }
 

@@ -1,5 +1,6 @@
 <?php
 
+
 ini_set('user_agent','Mozilla/5.0 (compatible; email=yurukov@gmail.com; reason=otvarqm dannite');  
 ini_set('default_socket_timeout', 300); 
 mb_internal_encoding("UTF-8");
@@ -59,7 +60,14 @@ function processFacilityData($facilityId, $page) {
 			$fields[5]=cleanCoords($r[2]);
 		elseif ($r[1]=="Основна икономическа дейност:")
 			$fields[6]=$r[2];
+		elseif ($r[1]=="Управляваща компания:")
+			$fields[7]=$r[2];
+
 	}
+
+	if ($fields[7])
+		$link->query("UPDATE facility set legalentity='".$fields[7]."' where id=$facilityId") or die("die:\n\nError executing query: ". $link->error);
+
 	mb_ereg_search_init($page,"<tr><td style=\"white-space:nowrap;\">(.*?)</td><td>(.*?)</td></tr>") or die("no data");
 	while (mb_ereg_search()) {
 		$r = mb_ereg_search_getregs();
